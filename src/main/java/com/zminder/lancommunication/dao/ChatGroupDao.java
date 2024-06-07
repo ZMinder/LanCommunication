@@ -1,7 +1,6 @@
 package com.zminder.lancommunication.dao;
 
 import com.zminder.lancommunication.pojo.ChatGroup;
-import com.zminder.lancommunication.pojo.User;
 import com.zminder.lancommunication.utils.DbHelper;
 
 import java.sql.SQLException;
@@ -72,32 +71,6 @@ public class ChatGroupDao {
         } catch (SQLException e) {
             e.printStackTrace();
             return false;
-        }
-    }
-
-    // 获取某用户所属的群组
-    public List<ChatGroup> getGroupsByUserId(int userId) {
-        String sql = "SELECT g.* FROM chat_group g " +
-                "JOIN group_members gm ON g.group_id = gm.group_id " +
-                "WHERE gm.user_id = ?";
-        try {
-            return DbHelper.queryList(sql, ChatGroup.class, userId);
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
-
-    // 获取群组的所有成员
-    public List<User> getGroupMembers(int groupId) {
-        String sql = "SELECT u.* FROM user u " +
-                "JOIN group_members gm ON u.user_id = gm.user_id " +
-                "WHERE gm.group_id = ?";
-        try {
-            return DbHelper.queryList(sql, User.class, groupId);
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return null;
         }
     }
 }
