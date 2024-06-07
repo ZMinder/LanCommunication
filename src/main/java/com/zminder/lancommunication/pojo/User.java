@@ -8,6 +8,16 @@ public class User {
     private String passwordHash;
     private Timestamp createdAt;
 
+    private boolean isOnline;
+
+    public boolean isOnline() {
+        return isOnline;
+    }
+
+    public void setOnline(boolean online) {
+        isOnline = online;
+    }
+
     // 无参构造函数
     public User() {
     }

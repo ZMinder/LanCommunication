@@ -19,11 +19,15 @@ public class UserDao {
         }
     }
 
-    // 用户登录
+    // 用户登录时更新在线状态
     public User loginUser(String username, String passwordHash) {
         String sql = "SELECT * FROM users WHERE username = ? AND password_hash = ?";
         try {
-            return DbHelper.query(sql, User.class, username, passwordHash);
+            User user = DbHelper.query(sql, User.class, username, passwordHash);
+            if (user != null) {
+                updateOnlineStatus(user.getUserId(), true);  // 设置用户在线
+            }
+            return user;
         } catch (SQLException e) {
             e.printStackTrace();
             return null;
@@ -51,5 +55,22 @@ public class UserDao {
             e.printStackTrace();
             return false;
         }
+    }
+
+    // 更新用户在线状态
+    public boolean updateOnlineStatus(int userId, boolean isOnline) {
+        String sql = "UPDATE users SET is_online = ? WHERE user_id = ?";
+        try {
+            int rows = DbHelper.update(sql, isOnline, userId);
+            return rows == 1;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    // 用户登出或断线时调用
+    public void logoutUser(int userId) {
+        updateOnlineStatus(userId, false);
     }
 }
