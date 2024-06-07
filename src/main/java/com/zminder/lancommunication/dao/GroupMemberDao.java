@@ -8,7 +8,7 @@ import org.apache.commons.dbutils.handlers.ScalarHandler;
 import java.sql.SQLException;
 import java.util.List;
 
-public class GroupMembersDao {
+public class GroupMemberDao {
 
     // 添加成员到群组
     public boolean addMemberToGroup(int groupId, int userId, String role) {

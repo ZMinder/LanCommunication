@@ -11,7 +11,7 @@ public class UserService {
     public boolean registerUser(String username, String passwordHash) {
         // 先检查用户名是否已被占用
         if (userDao.isUsernameTaken(username)) {
-            System.out.println("Username already taken.");
+            System.out.println("用户名已被占用");
             return false;
         } else {
             // 添加新用户到数据库

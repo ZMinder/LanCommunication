@@ -1,7 +1,7 @@
 package com.zminder.lancommunication.service;
 
 import com.zminder.lancommunication.dao.ChatGroupDao;
-import com.zminder.lancommunication.dao.GroupMembersDao;
+import com.zminder.lancommunication.dao.GroupMemberDao;
 import com.zminder.lancommunication.pojo.ChatGroup;
 import com.zminder.lancommunication.pojo.User;
 
@@ -10,7 +10,7 @@ import java.util.List;
 public class ChatGroupService {
 
     private ChatGroupDao chatGroupDao = new ChatGroupDao();
-    private GroupMembersDao groupMembersDao = new GroupMembersDao();
+    private GroupMemberDao groupMemberDao = new GroupMemberDao();
 
     // 创建群组
     public boolean createGroup(String groupName, int ownerId) {
@@ -20,7 +20,7 @@ public class ChatGroupService {
 
         boolean groupCreated = chatGroupDao.addChatGroup(group);
         if (groupCreated) {
-            return groupMembersDao.addMemberToGroup(group.getGroupId(), ownerId, "owner");
+            return groupMemberDao.addMemberToGroup(group.getGroupId(), ownerId, "owner");
         }
         return false;
     }
@@ -42,11 +42,11 @@ public class ChatGroupService {
 
     // 添加成员到群组
     public boolean addMemberToGroup(int groupId, int userId) {
-        return groupMembersDao.addMemberToGroup(groupId, userId, "member");
+        return groupMemberDao.addMemberToGroup(groupId, userId, "member");
     }
 
     // 获取群组成员
     public List<User> getGroupMembers(int groupId) {
-        return groupMembersDao.getGroupMembers(groupId);
+        return groupMemberDao.getGroupMembers(groupId);
     }
 }
