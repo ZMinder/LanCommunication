@@ -9,7 +9,8 @@ public class DatabaseUtils {
     private static final DruidDataSource dataSource = new DruidDataSource();
 
     static {
-        dataSource.setUrl("jdbc:mysql://localhost:3306/lan_communicate?useUnicode=true&characterEncoding=utf8&useSSL=false");
+        dataSource.setDriverClassName("com.mysql.cj.jdbc.Driver");
+        dataSource.setUrl("jdbc:mysql://localhost:3306/lan_communicate?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=UTC");
         dataSource.setUsername("root");
         dataSource.setPassword("040712");
         dataSource.setInitialSize(5); // 初始连接数
