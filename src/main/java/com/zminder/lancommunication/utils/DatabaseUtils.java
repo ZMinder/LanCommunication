@@ -10,8 +10,8 @@ public class DatabaseUtils {
 
     static {
         dataSource.setUrl("jdbc:mysql://localhost:3306/lan_communicate?useUnicode=true&characterEncoding=utf8&useSSL=false");
-        dataSource.setUsername("your_username");
-        dataSource.setPassword("your_password");
+        dataSource.setUsername("root");
+        dataSource.setPassword("040712");
         dataSource.setInitialSize(5); // 初始连接数
         dataSource.setMaxActive(10); // 最大连接数
         dataSource.setMinIdle(5); // 最小空闲连接数
