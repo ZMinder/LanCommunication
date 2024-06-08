@@ -29,8 +29,8 @@
 
 5.groupHistory:json数据
 
-6.From fromUser:message
+6.private:fromUser:message
 
-7.Group groupId From fromUser:message
+7.group:groupId:fromUser:message
 
 

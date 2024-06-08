@@ -120,7 +120,7 @@ public class ClientHandler implements Runnable {
         ClientHandler receiverHandler = server.getClientHandler(toUser);
         if (receiverHandler != null) {
             // 用户在线，直接发送消息
-            receiverHandler.sendMessage("From " + fromUser + ": " + message);
+            receiverHandler.sendMessage("private:" + fromUser + ":" + message);
         }
 
         // 记录发送的消息到数据库，无论用户是否在线
@@ -142,7 +142,7 @@ public class ClientHandler implements Runnable {
         for (User member : members) {
             ClientHandler memberHandler = server.getClientHandler(member.getUsername());
             if (memberHandler != null && !member.getUsername().equals(fromUser)) {
-                memberHandler.sendMessage("Group " + groupId + " From " + fromUser + ": " + message);
+                memberHandler.sendMessage("group:" + groupId + ":" + fromUser + ":" + message);
             }
         }
 
