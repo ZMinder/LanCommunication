@@ -1,7 +1,6 @@
 package com.zminder.lancommunication.frame;
 
 import com.zminder.lancommunication.pojo.User;
-import com.zminder.lancommunication.service.UserService;
 
 import javax.swing.*;
 import java.awt.*;
@@ -20,8 +19,6 @@ public class LoginPanel extends JPanel {
     private JPasswordField passwordField = new JPasswordField(20);
     private JButton loginButton = new JButton("登录");
     private JButton goToRegisterButton = new JButton("注册");
-
-    private UserService userService = new UserService();
 
     public LoginPanel(MainFrame mainFrame) {
         this.mainFrame = mainFrame;

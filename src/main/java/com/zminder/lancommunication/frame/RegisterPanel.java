@@ -1,7 +1,5 @@
 package com.zminder.lancommunication.frame;
 
-import com.zminder.lancommunication.service.UserService;
-
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -19,8 +17,6 @@ public class RegisterPanel extends JPanel {
     private JPasswordField passwordField = new JPasswordField(20);
     private JButton registerButton = new JButton("注册");
     private JButton backButton = new JButton("返回");
-
-    private UserService userService = new UserService();
 
     public RegisterPanel(MainFrame mainFrame) {
         this.mainFrame = mainFrame;

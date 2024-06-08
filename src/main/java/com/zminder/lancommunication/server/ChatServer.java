@@ -23,10 +23,8 @@ public class ChatServer {
     private GroupMemberService groupMemberService;
     private UserService userService = new UserService();
 
-    public ChatServer(int port, MessageService messageService, GroupMemberService groupMemberService) {
+    public ChatServer(int port) {
         this.port = port;
-        this.messageService = messageService;
-        this.groupMemberService = groupMemberService;
         this.clientHandlers = new ConcurrentHashMap<>();
         this.threadPool = Executors.newCachedThreadPool();
     }
@@ -89,5 +87,11 @@ public class ChatServer {
                 clientHandlers.get(member.getUsername()).sendMessage("Group " + groupId + " From " + fromUser + ": " + message);
             }
         }
+    }
+
+    public static void main(String[] args) {
+        int port = 12345; // Example port number
+        ChatServer server = new ChatServer(port);
+        server.start();
     }
 }
