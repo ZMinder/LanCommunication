@@ -13,13 +13,11 @@ public class Message {
     public Message() {
     }
 
-    public Message(int messageId, int senderId, Integer receiverId, Integer groupId, String message, java.sql.Timestamp timestamp) {
-        this.messageId = messageId;
+    public Message( int senderId, Integer receiverId, Integer groupId, String message) {
         this.senderId = senderId;
         this.receiverId = receiverId;
         this.groupId = groupId;
         this.message = message;
-        this.timestamp = timestamp;
     }
 
     public int getMessageId() {

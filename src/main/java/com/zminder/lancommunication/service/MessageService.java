@@ -20,6 +20,10 @@ public class MessageService {
         return messageDao.sendMessage(message);
     }
 
+    public boolean sendMessage(Message message) {
+        return messageDao.sendMessage(message);
+    }
+
     // 获取某个用户的所有私聊消息
     public List<Message> getPrivateMessagesForUser(int userId) {
         return messageDao.getPrivateMessagesForUser(userId);
