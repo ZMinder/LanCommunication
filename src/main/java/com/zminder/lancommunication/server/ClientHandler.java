@@ -1,6 +1,10 @@
 package com.zminder.lancommunication.server;
 
+import com.google.gson.Gson;
+import com.zminder.lancommunication.pojo.ChatGroup;
 import com.zminder.lancommunication.pojo.User;
+import com.zminder.lancommunication.service.FriendshipService;
+import com.zminder.lancommunication.service.GroupMemberService;
 import com.zminder.lancommunication.service.UserService;
 
 import java.io.BufferedReader;
@@ -8,6 +12,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.sql.SQLException;
+import java.util.List;
 
 public class ClientHandler implements Runnable {
     private Socket socket;
@@ -17,6 +23,9 @@ public class ClientHandler implements Runnable {
     private User user; // 存储关联的用户对象
 
     private UserService userService = new UserService(); // 用户服务用于查询用户信息
+    private FriendshipService friendshipService = new FriendshipService();
+    private GroupMemberService groupMemberService = new GroupMemberService();
+    private Gson gson = new Gson();
 
     public ClientHandler(Socket socket, ChatServer server) {
         this.socket = socket;
@@ -27,27 +36,63 @@ public class ClientHandler implements Runnable {
     @Override
     public void run() {
         try {
-            in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            out = new PrintWriter(socket.getOutputStream(), true);
-
-            String messageLine;
-            while ((messageLine = in.readLine()) != null) {
-                if (messageLine.startsWith("login:")) {
-                    handleLogin(messageLine);
-                } else if (messageLine.startsWith("register:")) {
-                    handleRegistration(messageLine);
-                } else {
-                    handleMessage(messageLine);
-                }
-            }
-
+            setupStreams();
+            processClientRequests();
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
-            if (this.user != null) {
-                server.unregisterClient(user.getUsername());
+            cleanUp();
+        }
+    }
+
+    private void setupStreams() throws IOException {
+        in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+        out = new PrintWriter(socket.getOutputStream(), true);
+    }
+
+    private void processClientRequests() {
+        try {
+            String messageLine;
+            while ((messageLine = in.readLine()) != null) {
+                handleClientMessage(messageLine);
             }
-            closeResources();
+        } catch (IOException e) {
+            System.out.println("Error handling client messages: " + e.getMessage());
+        }
+    }
+
+    private void handleClientMessage(String messageLine) {
+        if (messageLine.startsWith("login:")) {
+            handleLogin(messageLine);
+        } else if (messageLine.startsWith("register:")) {
+            handleRegistration(messageLine);
+        } else if (messageLine.startsWith("load:friends")) {
+            sendFriendsList();
+        } else if (messageLine.startsWith("load:groups")) {
+            sendGroupsList();
+        } else {
+            handleMessage(messageLine);
+        }
+    }
+
+    private void sendFriendsList() {
+        if (user != null) {
+            List<User> friends = null;
+            try {
+                friends = friendshipService.getFriendships(user.getUserId());
+                String json = gson.toJson(friends);
+                sendMessage("friends:" + json);
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private void sendGroupsList() {
+        if (user != null) {
+            List<ChatGroup> groups = groupMemberService.getGroupsByUserId(user.getUserId());
+            String json = gson.toJson(groups);
+            sendMessage("groups:" + json);
         }
     }
 
@@ -106,6 +151,13 @@ public class ClientHandler implements Runnable {
 
     public void sendMessage(String message) {
         out.println(message);
+    }
+
+    private void cleanUp() {
+        if (user != null) {
+            server.unregisterClient(user.getUsername());
+        }
+        closeResources();
     }
 
     private void closeResources() {

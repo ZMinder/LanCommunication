@@ -1,18 +1,28 @@
 package com.zminder.lancommunication.frame;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import com.zminder.lancommunication.pojo.ChatGroup;
-import com.zminder.lancommunication.pojo.Message;
 import com.zminder.lancommunication.pojo.User;
-import com.zminder.lancommunication.service.*;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.lang.reflect.Type;
+import java.net.Socket;
 import java.util.List;
 
 public class ChatPanel extends JPanel {
     private MainFrame mainFrame;
-    private User currentUser;
+    private String username;
+    private Socket socket;
+    private PrintWriter out;
+    private BufferedReader in;
+    private Gson gson = new Gson();
     private JTextArea chatArea = new JTextArea(20, 50);
     private JTextField inputField = new JTextField(40);
     private JButton sendButton = new JButton("发送");
@@ -22,20 +32,26 @@ public class ChatPanel extends JPanel {
     private JList<String> groupList = new JList<>();
     private DefaultListModel<String> groupListModel = new DefaultListModel<>();
 
-    private UserService userService = new UserService();
-    private ChatGroupService chatGroupService = new ChatGroupService();
-    private MessageService messageService = new MessageService();
-    private FriendshipService friendshipService = new FriendshipService();
-    private GroupMemberService groupMemberService = new GroupMemberService();
-
-    public ChatPanel(MainFrame mainFrame) {
+    public ChatPanel(MainFrame mainFrame, Socket socket, String username) {
         this.mainFrame = mainFrame;
-        setupUI();
+        setConnection(socket, username);//设置username和socket
+        setupUI();//设置UI界面
+        loadInitialData();//加载好友列表和群组列表
     }
 
-    public void setCurrentUser(User user) {
-        this.currentUser = user;
-        loadInitialData();
+    public void setConnection(Socket socket, String username) {
+        this.username = username;
+        this.socket = socket;
+        try {
+            if (socket != null) {//创建输入输出流对象
+                out = new PrintWriter(socket.getOutputStream(), true);
+                in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                //开启接受服务器端信息的线程
+                new Thread(this::readMessages).start();
+            }
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "连接错误: " + e.getMessage());
+        }
     }
 
     private void setupUI() {
@@ -94,81 +110,73 @@ public class ChatPanel extends JPanel {
         });
     }
 
-    private void loadInitialData() {//加载好友列表和群组列表
-        if (currentUser == null) return;
+    private void loadInitialData() {//从服务器端加载好友列表和群组列表
+        out.println("load:friends");
+        out.println("load:groups");
+    }
 
-        System.out.println("load");
-        System.out.println(currentUser.getUserId());
-        //加载群组列表
-        List<ChatGroup> groups = groupMemberService.getGroupsByUserId(currentUser.getUserId());
-        System.out.println(groups);
-        groups.forEach(group -> groupListModel.addElement(group.getGroupName()));
-
-        //加载好友列表
+    private void readMessages() {//处理从服务器端接收的信息
         try {
-            List<User> friends = friendshipService.getFriendships(currentUser.getUserId());
-            System.out.println(friends);
-            friends.forEach(friend -> friendListModel.addElement(friend.getUsername()));
-        } catch (Exception e) {
+            String line;
+            while ((line = in.readLine()) != null) {
+                final String msg = line;
+                handleMessages(msg);
+            }
+        } catch (IOException e) {
             e.printStackTrace();
         }
+    }
 
-        //放置在UI界面上 用于显示
-        friendList.setModel(friendListModel);
-        groupList.setModel(groupListModel);
+    private void handleMessages(String msg) {//将处理信息的代码封装起来
+        if (msg.startsWith("friends:")) {
+            handleFriendsList(msg.substring(8));
+        } else if (msg.startsWith("groups:")) {
+            handleGroupsList(msg.substring(7));
+        } else {
+            SwingUtilities.invokeLater(() -> chatArea.append(msg + "\n"));
+        }
+    }
+
+    private void handleFriendsList(String json) {//将从服务器端加载的好友列表显示到本地
+        Type listType = new TypeToken<List<User>>() {
+        }.getType();
+        List<User> friends = gson.fromJson(json, listType);
+        SwingUtilities.invokeLater(() -> {
+            friendListModel.clear();
+            friends.forEach(friend -> friendListModel.addElement(friend.getUsername()));
+        });
+    }
+
+    private void handleGroupsList(String json) {//将从服务器端加载的群组列表显示到本地
+        Type listType = new TypeToken<List<ChatGroup>>() {
+        }.getType();
+        List<ChatGroup> groups = gson.fromJson(json, listType);
+        SwingUtilities.invokeLater(() -> {
+            groupListModel.clear();
+            groups.forEach(group -> groupListModel.addElement(group.getGroupName()));
+        });
     }
 
     private void handleSendMessage(ActionEvent e) {
         String message = inputField.getText();
         if (!message.isEmpty()) {
-            if (!friendList.isSelectionEmpty()) {//发送给好友
-                //获取当前选中的好友
+            if (!friendList.isSelectionEmpty()) {
                 String friendName = friendList.getSelectedValue();
-                //查询到好友ID
-                User friend = userService.getUserByUsername(friendName);
-                //发送信息
-                messageService.sendMessage(currentUser.getUserId(), friend.getUserId(), null, message);
+                out.println("private:" + friendName + ":" + message);
             } else if (!groupList.isSelectionEmpty()) {
-                //获取当前选中的群组名称
                 String groupName = groupList.getSelectedValue();
-                //模糊查询到对应的群组详细信息
-                ChatGroup group = chatGroupService.getGroupByName(groupName).get(0);
-                //发送信息
-                messageService.sendMessage(currentUser.getUserId(), null, group.getGroupId(), message);
+                out.println("group:" + groupName + ":" + message);
             }
             chatArea.append("我: " + message + "\n");
             inputField.setText("");
         }
     }
 
-    private void loadGroupChatHistory() {//加载群组历史信息
-        if (!groupList.isSelectionEmpty()) {
-            //获取当前选中群组的详细信息
-            String groupName = groupList.getSelectedValue();
-            ChatGroup group = chatGroupService.getGroupByName(groupName).get(0);
-            //加载历史信息
-            List<Message> messages = messageService.getGroupMessages(group.getGroupId());
-            chatArea.setText("");
-            messages.forEach(msg -> {
-                String senderUsername = userService.getUserById(msg.getSenderId()).getUsername();
-                chatArea.append(senderUsername + ": " + msg.getMessage() + "\n");
-            });
-        }
+    private void loadGroupChatHistory() {
+        // 这里可以添加从服务器加载群组聊天历史的逻辑
     }
 
-    private void loadFriendChatHistory() {//加载好友历史信息
-        if (!friendList.isSelectionEmpty()) {
-            //获取当前选中好友的详细信息
-            String friendName = friendList.getSelectedValue();
-            User friend = userService.getUserByUsername(friendName);
-            //获取当前两个人的历史信息
-            List<Message> messages = messageService.getMessagesBetweenUsers(currentUser.getUserId(), friend.getUserId());
-            //放置在chatArea中
-            chatArea.setText("");
-            messages.forEach(msg -> {
-                String senderUsername = userService.getUserById(msg.getSenderId()).getUsername();
-                chatArea.append(senderUsername + ": " + msg.getMessage() + "\n");
-            });
-        }
+    private void loadFriendChatHistory() {
+        // 这里可以添加从服务器加载好友聊天历史的逻辑
     }
 }
