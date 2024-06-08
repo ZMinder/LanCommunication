@@ -67,13 +67,22 @@ public class ChatPanel extends JPanel {
         inputPanel.add(sendButton, BorderLayout.EAST);
         add(inputPanel, BorderLayout.SOUTH);
 
-        //使用JTabbedPane配置好友列表和群组列表
-        JTabbedPane tabbedPane = new JTabbedPane();
+        // 使用JTabbedPane配置好友列表和群组列表
+        JTabbedPane tabbedPane = new JTabbedPane(JTabbedPane.TOP);
         tabbedPane.addTab("好友列表", new JScrollPane(friendList));
         tabbedPane.addTab("群组列表", new JScrollPane(groupList));
-        friendList.setModel(friendListModel); // 确保设置模型
-        groupList.setModel(groupListModel);   // 确保设置模型
-        add(tabbedPane, BorderLayout.WEST);
+        friendList.setModel(friendListModel);
+        groupList.setModel(groupListModel);
+
+        // 创建一个包含JTabbedPane的面板，使其高度自适应
+        JPanel tabPanel = new JPanel(new BorderLayout());
+        tabPanel.add(tabbedPane, BorderLayout.CENTER);
+
+        // 使用JSplitPane水平分隔聊天区域和选项卡
+        JSplitPane mainSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, tabPanel, chatArea);
+        mainSplitPane.setDividerLocation(180);
+        mainSplitPane.setResizeWeight(0.2);
+        add(mainSplitPane, BorderLayout.CENTER);
 
         //设置监听器
         sendButton.addActionListener(this::handleSendMessage);
