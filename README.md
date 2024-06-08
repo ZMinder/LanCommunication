@@ -13,6 +13,10 @@
 
 6.load:friendHistory:friendName 加载好友历史记录
 
+7.private:friendName:message
+
+8.group:groupName:message
+
 服务器发送响应
 
 1.注册/登录：success/fail
@@ -25,5 +29,8 @@
 
 5.groupHistory:json数据
 
+6.From fromUser:message
+
+7.Group groupId From fromUser:message
 
 
