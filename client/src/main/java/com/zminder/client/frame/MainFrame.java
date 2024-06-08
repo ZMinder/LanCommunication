@@ -12,6 +12,7 @@ public class MainFrame extends JFrame {
     private LoginPanel loginPanel;
     private RegisterPanel registerPanel;
     private ChatPanel chatPanel;
+    private SearchPanel searchPanel;
 
     public MainFrame() {
         setTitle("局域网通信");
@@ -47,6 +48,12 @@ public class MainFrame extends JFrame {
             chatPanel.setConnection(socket, username);
         }
         cardLayout.show(mainPanel, "聊天");
+    }
+
+    public void showSearchPanel(String username, Socket socket) {
+        searchPanel = new SearchPanel(this, socket, username);
+        mainPanel.add(searchPanel, "查找用户");
+        cardLayout.show(mainPanel, "查找用户");
     }
 
     public static void main(String[] args) {

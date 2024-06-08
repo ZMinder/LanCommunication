@@ -90,6 +90,10 @@ public class ChatPanel extends JPanel {
         mainSplitPane.setResizeWeight(0.2);
         add(mainSplitPane, BorderLayout.CENTER);
 
+        JButton searchButton = new JButton("查找用户");
+        searchButton.addActionListener(e -> mainFrame.showSearchPanel(username,socket));
+        add(searchButton, BorderLayout.NORTH);
+
         //设置监听器
         sendButton.addActionListener(this::handleSendMessage);
 
