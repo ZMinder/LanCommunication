@@ -4,6 +4,7 @@ import com.zminder.lancommunication.pojo.User;
 
 import javax.swing.*;
 import java.awt.*;
+import java.net.Socket;
 
 public class MainFrame extends JFrame {
 
@@ -23,7 +24,6 @@ public class MainFrame extends JFrame {
         // 初始化各个面板
         loginPanel = new LoginPanel(this);
         registerPanel = new RegisterPanel(this);
-        chatPanel = new ChatPanel(this);
 
         // 添加面板到主面板
         mainPanel.add(loginPanel, "登录");
@@ -42,8 +42,13 @@ public class MainFrame extends JFrame {
         cardLayout.show(mainPanel, "注册");
     }
 
-    public void showChatPanel(User user) {
-        chatPanel.setCurrentUser(user);
+    public void showChatPanel(String username, Socket socket) {
+        if (chatPanel == null) {
+            chatPanel = new ChatPanel(this, socket, username);
+            mainPanel.add(chatPanel, "聊天");
+        } else {
+            chatPanel.setConnection(socket, username);
+        }
         cardLayout.show(mainPanel, "聊天");
     }
 
