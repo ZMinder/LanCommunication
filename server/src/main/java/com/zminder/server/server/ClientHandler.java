@@ -137,12 +137,13 @@ public class ClientHandler implements Runnable {
     private void sendGroupMessage(String fromUser, String groupId, String message) {
         User sender = userService.getUserByUsername(fromUser);
         int groupIdInt = Integer.parseInt(groupId);
+        ChatGroup group = chatGroupService.getGroupById(groupIdInt);
         List<User> members = groupMemberService.getGroupMembers(groupIdInt);
 
         for (User member : members) {
             ClientHandler memberHandler = server.getClientHandler(member.getUsername());
             if (memberHandler != null && !member.getUsername().equals(fromUser)) {
-                memberHandler.sendMessage("group:" + groupId + ":" + fromUser + ":" + message);
+                memberHandler.sendMessage("group:" + group.getGroupName() + ":" + fromUser + ":" + message);
             }
         }
 

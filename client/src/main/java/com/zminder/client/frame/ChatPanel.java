@@ -98,15 +98,11 @@ public class ChatPanel extends JPanel {
             chatArea.setText(""); // 清空聊天区域
             int selectedIndex = tabbedPane.getSelectedIndex();
             if (selectedIndex == 0) { // 选择好友列表选项卡
-                if (friendList.getModel().getSize() > 0) {
-                    friendList.clearSelection();
-                    friendList.setSelectedIndex(0); // 强制触发好友列表选择事件
-                }
+                groupList.clearSelection(); // 清除群组列表的选中状态
+                System.out.println("group clear");
             } else if (selectedIndex == 1) { // 选择群组列表选项卡
-                if (groupList.getModel().getSize() > 0) {
-                    groupList.clearSelection();
-                    groupList.setSelectedIndex(0); // 强制触发群组列表选择事件
-                }
+                friendList.clearSelection(); // 清除好友列表的选中状态
+                System.out.println("friend clear");
             }
         });
 
@@ -114,7 +110,7 @@ public class ChatPanel extends JPanel {
         friendList.addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting() && !friendList.isSelectionEmpty()) {
                 String selectedFriend = friendList.getSelectedValue();
-                ((CustomListRenderer)friendList.getCellRenderer()).clearNewMessage(selectedFriend);
+                ((CustomListRenderer) friendList.getCellRenderer()).clearNewMessage(selectedFriend);
                 friendList.repaint();
                 loadFriendChatHistory();
             }
@@ -124,7 +120,7 @@ public class ChatPanel extends JPanel {
         groupList.addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting() && !groupList.isSelectionEmpty()) {
                 String selectedGroup = groupList.getSelectedValue();
-                ((CustomListRenderer)groupList.getCellRenderer()).clearNewMessage(selectedGroup);
+                ((CustomListRenderer) groupList.getCellRenderer()).clearNewMessage(selectedGroup);
                 groupList.repaint();
                 loadGroupChatHistory();
             }
@@ -194,19 +190,19 @@ public class ChatPanel extends JPanel {
         }
 
         SwingUtilities.invokeLater(() -> {
-            System.out.println("new message");
             if (type.equals("private")) {
                 if (isActiveChat("private", senderOrGroupId)) {
                     chatArea.append(fromUser + ": " + content + "\n");
                 } else {
-                    ((CustomListRenderer)friendList.getCellRenderer()).setNewMessage(senderOrGroupId);
+                    ((CustomListRenderer) friendList.getCellRenderer()).setNewMessage(senderOrGroupId);
                     friendList.repaint();
                 }
             } else if (type.equals("group")) {
                 if (isActiveChat("group", senderOrGroupId)) {
                     chatArea.append(fromUser + ": " + content + "\n");
                 } else {
-                    ((CustomListRenderer)groupList.getCellRenderer()).setNewMessage(senderOrGroupId);
+                    System.out.println(senderOrGroupId);
+                    ((CustomListRenderer) groupList.getCellRenderer()).setNewMessage(senderOrGroupId);
                     groupList.repaint();
                 }
             }
