@@ -110,19 +110,23 @@ public class ChatPanel extends JPanel {
             }
         });
 
-        // 好友列表选择监听器
+        // 添加好友列表选择监听器
         friendList.addListSelectionListener(e -> {
-            if (!e.getValueIsAdjusting()) {
-                groupList.clearSelection(); // 清空群组列表的选中状态
-                loadFriendChatHistory(); // 加载好友聊天记录
+            if (!e.getValueIsAdjusting() && !friendList.isSelectionEmpty()) {
+                String selectedFriend = friendList.getSelectedValue();
+                ((CustomListRenderer)friendList.getCellRenderer()).clearNewMessage(selectedFriend);
+                friendList.repaint();
+                loadFriendChatHistory();
             }
         });
 
-        // 群组列表选择监听器
+        // 添加群组列表选择监听器
         groupList.addListSelectionListener(e -> {
-            if (!e.getValueIsAdjusting()) {
-                friendList.clearSelection(); // 清空好友列表的选中状态
-                loadGroupChatHistory(); // 加载群组聊天记录
+            if (!e.getValueIsAdjusting() && !groupList.isSelectionEmpty()) {
+                String selectedGroup = groupList.getSelectedValue();
+                ((CustomListRenderer)groupList.getCellRenderer()).clearNewMessage(selectedGroup);
+                groupList.repaint();
+                loadGroupChatHistory();
             }
         });
     }
@@ -162,13 +166,35 @@ public class ChatPanel extends JPanel {
     private void handleNewMessage(String msg) {
         // private:fromUser:message
         // group:groupId:fromUser:message
+        // 根据冒号来分割消息
         String[] parts = msg.split(":", 4);
         String type = parts[0];
-        String senderOrGroupId = parts[1];
-        String fromUser = parts[2];
-        String content = parts[3];
+        String senderOrGroupId = parts[1]; // 第二部分为发送者用户名或群组ID
+        String fromUser; // 初始化发送者变量
+        String content; // 初始化内容变量
+
+        // 根据消息类型分别处理
+        if (type.equals("private")) {
+            if (parts.length < 3) {
+                System.out.println("Received malformed private message: " + msg);
+                return; // 如果消息格式不正确，则不处理此消息
+            }
+            fromUser = senderOrGroupId; // 私聊中的第二部分为发送者用户名
+            content = parts[2]; // 私聊中的第三部分为消息内容
+        } else if (type.equals("group")) {
+            if (parts.length < 4) {
+                System.out.println("Received malformed group message: " + msg);
+                return; // 如果消息格式不正确，则不处理此消息
+            }
+            fromUser = parts[2]; // 群聊中的第三部分为发送者用户名
+            content = parts[3]; // 群聊中的第四部分为消息内容
+        } else {
+            System.out.println("Unknown message type: " + msg);
+            return;
+        }
 
         SwingUtilities.invokeLater(() -> {
+            System.out.println("new message");
             if (type.equals("private")) {
                 if (isActiveChat("private", senderOrGroupId)) {
                     chatArea.append(fromUser + ": " + content + "\n");
@@ -222,10 +248,12 @@ public class ChatPanel extends JPanel {
         if (!message.isEmpty()) {
             // 判断是发送给好友还是群组
             if (!friendList.isSelectionEmpty()) {
+                System.out.println("private");
                 // 发送私聊消息
                 String friendName = friendList.getSelectedValue();
                 out.println("private:" + friendName + ":" + message);
             } else if (!groupList.isSelectionEmpty()) {
+                System.out.println("group");
                 // 发送群聊消息
                 String groupName = groupList.getSelectedValue();
                 out.println("group:" + groupName + ":" + message);

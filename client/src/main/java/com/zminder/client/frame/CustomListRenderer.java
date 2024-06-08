@@ -12,14 +12,14 @@ public class CustomListRenderer extends DefaultListCellRenderer {
         this.newMessages = new HashSet<>();
     }
 
-    public void setNewMessage(String item) {
-        newMessages.add(item);
-        // You can call repaint or revalidate on the JList if needed
+    // 设置新消息
+    public void setNewMessage(String value) {
+        newMessages.add(value);
     }
 
-    public void clearNewMessage(String item) {
-        newMessages.remove(item);
-        // You can call repaint or revalidate on the JList if needed
+    // 清除新消息提示
+    public void clearNewMessage(String value) {
+        newMessages.remove(value);
     }
 
     @Override
@@ -27,7 +27,7 @@ public class CustomListRenderer extends DefaultListCellRenderer {
                                                   boolean isSelected, boolean cellHasFocus) {
         JLabel label = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
         if (newMessages.contains(value.toString())) {
-            ImageIcon icon = new ImageIcon("src/main/resources/images/red_pot.jpg");
+            ImageIcon icon = new ImageIcon("E:\\Project\\LanCommunication\\client\\src\\main\\resources\\images\\red_pot.jpg");
             Image img = icon.getImage();
             Image newImg = img.getScaledInstance(10, 10, java.awt.Image.SCALE_SMOOTH); // 设置小红点的大小
             icon = new ImageIcon(newImg);
