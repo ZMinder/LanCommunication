@@ -13,6 +13,7 @@ public class MainFrame extends JFrame {
     private RegisterPanel registerPanel;
     private ChatPanel chatPanel;
     private SearchPanel searchPanel;
+    private FriendRequestPanel friendRequestPanel;
 
     public MainFrame() {
         setTitle("局域网通信");
@@ -49,9 +50,12 @@ public class MainFrame extends JFrame {
         }
         cardLayout.show(mainPanel, "聊天");
         if (searchPanel != null) {
-            searchPanel.stopReading();  // 停止搜索面板的数据读取
+            searchPanel.stopReading();
         }
-        chatPanel.startReading();  // 启动聊天面板的数据读取
+        if (friendRequestPanel != null) {
+            friendRequestPanel.stopReading();
+        }
+        chatPanel.startReading();
     }
 
     public void showSearchPanel(String username, Socket socket) {
@@ -63,9 +67,29 @@ public class MainFrame extends JFrame {
         }
         cardLayout.show(mainPanel, "查找用户");
         if (chatPanel != null) {
-            chatPanel.stopReading();  // 停止聊天面板的数据读取
+            chatPanel.stopReading();
         }
-        searchPanel.startReading();  // 启动搜索面板的数据读取
+        if (friendRequestPanel != null) {
+            friendRequestPanel.stopReading();
+        }
+        searchPanel.startReading();
+    }
+
+    public void showFriendRequestPanel(String username, Socket socket) {
+        if (friendRequestPanel == null) {
+            friendRequestPanel = new FriendRequestPanel(this, socket, username);
+            mainPanel.add(friendRequestPanel, "好友申请");
+        } else {
+            friendRequestPanel.setConnection(socket, username);
+        }
+        cardLayout.show(mainPanel, "好友申请");
+        if (chatPanel != null) {
+            chatPanel.stopReading();
+        }
+        if (searchPanel != null) {
+            searchPanel.stopReading();
+        }
+        friendRequestPanel.startReading();
     }
 
     public static void main(String[] args) {

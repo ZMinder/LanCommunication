@@ -35,7 +35,7 @@ public class ChatPanel extends JPanel {
     private DefaultListModel<String> groupListModel = new DefaultListModel<>();
     private CustomListRenderer friendListRenderer = new CustomListRenderer();
     private CustomListRenderer groupListRenderer = new CustomListRenderer();
-
+    private JButton friendRequestButton = new JButton("查看好友申请");
     private volatile boolean isActive = false;  // 控制读取线程
     private Thread readingThread;  // 保存数据读取线程的引用
 
@@ -98,6 +98,14 @@ public class ChatPanel extends JPanel {
         JButton searchButton = new JButton("查找用户");
         searchButton.addActionListener(e -> mainFrame.showSearchPanel(username, socket));
         add(searchButton, BorderLayout.NORTH);
+
+        // 添加查看好友申请按钮
+        JPanel northPanel = new JPanel(new BorderLayout());
+        northPanel.add(searchButton, BorderLayout.WEST);
+        northPanel.add(friendRequestButton, BorderLayout.EAST);
+        add(northPanel, BorderLayout.NORTH);
+
+        friendRequestButton.addActionListener(e -> mainFrame.showFriendRequestPanel(username, socket));
 
         //设置监听器
         sendButton.addActionListener(this::handleSendMessage);
