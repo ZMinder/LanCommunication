@@ -4,13 +4,25 @@ import java.sql.Timestamp;
 
 public class User {
     private int userId;
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "userId=" + userId +
+                ", username='" + username + '\'' +
+                ", passwordHash='" + passwordHash + '\'' +
+                ", createdAt=" + createdAt +
+                ", isOnline=" + isOnline +
+                '}';
+    }
+
     private String username;
     private String passwordHash;
     private Timestamp createdAt;
 
     private boolean isOnline;
 
-    public boolean isOnline() {
+    public boolean getOnline() {
         return isOnline;
     }
 

@@ -21,7 +21,8 @@ public class UserDao {
 
     // 用户登录时更新在线状态
     public User loginUser(String username, String passwordHash) {
-        String sql = "SELECT * FROM user WHERE username = ? AND password_hash = ?";
+        String sql = "SELECT user_id AS userId, username, password_hash AS passwordHash, created_at AS createdAt, is_online AS isOnline " +
+                "FROM user WHERE username = ? AND password_hash = ?";
         try {
             User user = DbHelper.query(sql, User.class, username, passwordHash);
             if (user != null) {
@@ -36,7 +37,8 @@ public class UserDao {
 
     // 查询用户
     public User getUserByUsername(String username) {
-        String sql = "SELECT * FROM user WHERE username = ?";
+        String sql = "SELECT user_id AS userId, username, password_hash AS passwordHash, created_at AS createdAt, is_online AS isOnline " +
+                "FROM user WHERE username = ?";
         try {
             return DbHelper.query(sql, User.class, username);
         } catch (SQLException e) {
@@ -47,7 +49,8 @@ public class UserDao {
 
     // 根据用户ID获取用户信息
     public User getUserById(int userId) {
-        String sql = "SELECT * FROM user WHERE user_id = ?";
+        String sql = "SELECT user_id AS userId, username, password_hash AS passwordHash, created_at AS createdAt, is_online AS isOnline " +
+                "FROM user WHERE user_id = ?";
         try {
             return DbHelper.query(sql, User.class, userId);
         } catch (SQLException e) {
