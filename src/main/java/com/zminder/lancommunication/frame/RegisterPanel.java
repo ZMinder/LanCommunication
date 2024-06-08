@@ -6,6 +6,11 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.net.Socket;
 
 public class RegisterPanel extends JPanel {
 
@@ -79,13 +84,40 @@ public class RegisterPanel extends JPanel {
                 String username = usernameField.getText();
                 String password = new String(passwordField.getPassword());
 
-                boolean success = userService.registerUser(username, password);
-                if (success) {
-                    JOptionPane.showMessageDialog(mainFrame, "注册成功!");
-                    mainFrame.showLoginPanel();
-                } else {
-                    JOptionPane.showMessageDialog(mainFrame, "注册失败!");
-                }
+                // 使用SwingWorker进行网络操作
+                SwingWorker<Boolean, Void> worker = new SwingWorker<Boolean, Void>() {
+                    @Override
+                    protected Boolean doInBackground() throws Exception {
+                        try (Socket socket = new Socket("localhost", 12345);
+                             PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+                             BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
+                            // 发送注册请求
+                            out.println("register:" + username + ":" + password);
+                            // 接收服务器响应
+                            String response = in.readLine();
+                            return "success".equals(response);
+                        } catch (IOException ex) {
+                            ex.printStackTrace();
+                            return false;
+                        }
+                    }
+
+                    @Override
+                    protected void done() {
+                        try {
+                            boolean success = get();
+                            if (success) {
+                                JOptionPane.showMessageDialog(mainFrame, "注册成功!");
+                                mainFrame.showLoginPanel();
+                            } else {
+                                JOptionPane.showMessageDialog(mainFrame, "注册失败, 用户名可能已被占用!");
+                            }
+                        } catch (Exception ex) {
+                            JOptionPane.showMessageDialog(mainFrame, "注册错误：" + ex.getMessage());
+                        }
+                    }
+                };
+                worker.execute();
             }
         });
 

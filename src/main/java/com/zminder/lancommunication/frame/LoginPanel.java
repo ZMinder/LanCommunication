@@ -7,6 +7,11 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.net.Socket;
 
 public class LoginPanel extends JPanel {
 
@@ -80,15 +85,45 @@ public class LoginPanel extends JPanel {
                 String username = usernameField.getText();
                 String password = new String(passwordField.getPassword());
 
-                User user = userService.loginUser(username, password);
-                if (user != null) {
-                    JOptionPane.showMessageDialog(mainFrame, "登录成功!");
-                    mainFrame.showChatPanel(user);
-                } else {
-                    JOptionPane.showMessageDialog(mainFrame, "登录失败!");
-                }
+                // 使用SwingWorker进行网络操作，防止UI线程阻塞
+                SwingWorker<Boolean, Void> worker = new SwingWorker<Boolean, Void>() {
+                    @Override
+                    protected Boolean doInBackground() throws Exception {
+                        try (Socket socket = new Socket("localhost", 12345);
+                             PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+                             BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
+                            // 发送登录请求
+                            out.println("login:" + username + ":" + password);
+                            // 接收服务器响应
+                            String response = in.readLine();
+                            return "success".equals(response);
+                        } catch (IOException ex) {
+                            ex.printStackTrace();
+                            return false;
+                        }
+                    }
+
+                    @Override
+                    protected void done() {
+                        try {
+                            boolean success = get();
+                            if (success) {
+                                JOptionPane.showMessageDialog(mainFrame, "登录成功!");
+                                User user = new User(); // 假设你有一个适当的User对象或方法来获取用户信息
+                                user.setUsername(username);
+                                mainFrame.showChatPanel(user);
+                            } else {
+                                JOptionPane.showMessageDialog(mainFrame, "登录失败!");
+                            }
+                        } catch (Exception ex) {
+                            JOptionPane.showMessageDialog(mainFrame, "登录错误：" + ex.getMessage());
+                        }
+                    }
+                };
+                worker.execute();
             }
         });
+
 
         // 切换到注册面板按钮事件处理
         goToRegisterButton.addActionListener(new ActionListener() {

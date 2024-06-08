@@ -30,23 +30,17 @@ public class ClientHandler implements Runnable {
             in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             out = new PrintWriter(socket.getOutputStream(), true);
 
-            // 第一条信息是用户名
-            String username = in.readLine();
-            // 查询数据库获取用户对象
-            this.user = userService.getUserByUsername(username);
-
-            if (this.user != null) {
-                //注册到server
-                server.registerClient(user.getUsername(), this);
-
-                String messageLine;
-                while ((messageLine = in.readLine()) != null) {
+            String messageLine;
+            while ((messageLine = in.readLine()) != null) {
+                if (messageLine.startsWith("login:")) {
+                    handleLogin(messageLine);
+                } else if (messageLine.startsWith("register:")) {
+                    handleRegistration(messageLine);
+                } else {
                     handleMessage(messageLine);
                 }
-            } else {
-                System.out.println("用户验证失败，无法找到用户名：" + username);
-                return; // 如果用户验证失败，则不进行注册和消息处理
             }
+
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
@@ -54,6 +48,40 @@ public class ClientHandler implements Runnable {
                 server.unregisterClient(user.getUsername());
             }
             closeResources();
+        }
+    }
+
+    private void handleRegistration(String messageLine) {
+        //register:username:password
+        String[] parts = messageLine.split(":", 3);
+        if (parts.length < 3) return; // 格式不正确
+
+        String username = parts[1];
+        String password = parts[2];
+
+        boolean success = userService.registerUser(username, password);
+        if (success) {
+            sendMessage("success");
+        } else {
+            sendMessage("fail");
+        }
+    }
+
+    private void handleLogin(String messageLine) {
+        //login:username:password
+        String[] parts = messageLine.split(":", 3);
+        if (parts.length < 3) return; // 格式不正确
+
+        String username = parts[1];
+        String password = parts[2];
+
+        User user = userService.loginUser(username, password);
+        if (user != null) {
+            this.user = user;
+            server.registerClient(username, this);
+            sendMessage("success");
+        } else {
+            sendMessage("fail");
         }
     }
 
