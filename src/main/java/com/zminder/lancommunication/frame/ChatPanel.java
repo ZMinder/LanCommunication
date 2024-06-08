@@ -71,6 +71,8 @@ public class ChatPanel extends JPanel {
         JTabbedPane tabbedPane = new JTabbedPane();
         tabbedPane.addTab("好友列表", new JScrollPane(friendList));
         tabbedPane.addTab("群组列表", new JScrollPane(groupList));
+        friendList.setModel(friendListModel); // 确保设置模型
+        groupList.setModel(groupListModel);   // 确保设置模型
         add(tabbedPane, BorderLayout.WEST);
 
         //设置监听器

@@ -28,7 +28,6 @@ public class MainFrame extends JFrame {
         // 添加面板到主面板
         mainPanel.add(loginPanel, "登录");
         mainPanel.add(registerPanel, "注册");
-        mainPanel.add(chatPanel, "聊天");
 
         add(mainPanel);
         showLoginPanel();
