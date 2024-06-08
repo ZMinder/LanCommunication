@@ -21,7 +21,8 @@ public class ChatGroupDao {
 
     // 根据群组ID获取群组信息
     public ChatGroup getChatGroupById(int groupId) {
-        String sql = "SELECT * FROM chat_group WHERE group_id = ?";
+        String sql = "SELECT group_id AS groupId, group_name AS groupName, owner_id AS ownerId, created_at AS createdAt " +
+                "FROM chat_group WHERE group_id = ?";
         try {
             return DbHelper.query(sql, ChatGroup.class, groupId);
         } catch (SQLException e) {
@@ -32,7 +33,8 @@ public class ChatGroupDao {
 
     // 根据群组名称获取群组信息（模糊查询）
     public List<ChatGroup> getChatGroupByName(String groupName) {
-        String sql = "SELECT * FROM chat_group WHERE group_name LIKE ?";
+        String sql = "SELECT group_id AS groupId, group_name AS groupName, owner_id AS ownerId, created_at AS createdAt " +
+                "FROM chat_group WHERE group_name LIKE ?";
         try {
             return DbHelper.queryList(sql, ChatGroup.class, "%" + groupName + "%");
         } catch (SQLException e) {
@@ -43,7 +45,8 @@ public class ChatGroupDao {
 
     // 获取所有群组
     public List<ChatGroup> getAllChatGroups() {
-        String sql = "SELECT * FROM chat_group";
+        String sql = "SELECT group_id AS groupId, group_name AS groupName, owner_id AS ownerId, created_at AS createdAt " +
+                "FROM chat_group";
         try {
             return DbHelper.queryList(sql, ChatGroup.class);
         } catch (SQLException e) {

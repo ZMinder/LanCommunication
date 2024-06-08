@@ -32,9 +32,10 @@ public class GroupMemberDao {
         }
     }
 
-    // 获取某用户所属的群组
+    // 查询用户所属群组
     public List<ChatGroup> getGroupsByUserId(int userId) {
-        String sql = "SELECT g.* FROM chat_group g " +
+        String sql = "SELECT g.group_id AS groupId, g.group_name AS groupName, g.owner_id AS ownerId, g.created_at AS createdAt " +
+                "FROM chat_group g " +
                 "JOIN group_members gm ON g.group_id = gm.group_id " +
                 "WHERE gm.user_id = ?";
         try {
@@ -47,7 +48,8 @@ public class GroupMemberDao {
 
     // 获取群组的所有成员
     public List<User> getGroupMembers(int groupId) {
-        String sql = "SELECT u.* FROM user u " +
+        String sql = "SELECT u.user_id AS userId, u.username, u.password_hash AS passwordHash, u.created_at AS createdAt, u.is_online AS isOnline " +
+                "FROM user u " +
                 "JOIN group_members gm ON u.user_id = gm.user_id " +
                 "WHERE gm.group_id = ?";
         try {
@@ -70,3 +72,4 @@ public class GroupMemberDao {
         }
     }
 }
+

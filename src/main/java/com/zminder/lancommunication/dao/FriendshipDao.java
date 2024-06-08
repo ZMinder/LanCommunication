@@ -1,6 +1,5 @@
 package com.zminder.lancommunication.dao;
 
-import com.zminder.lancommunication.pojo.Friendship;
 import com.zminder.lancommunication.pojo.User;
 import com.zminder.lancommunication.utils.DbHelper;
 import org.apache.commons.dbutils.handlers.ScalarHandler;
@@ -11,10 +10,12 @@ import java.util.List;
 public class FriendshipDao {
 
     public List<User> getFriendsByUserId(int userId) throws SQLException {
-        String sql = "SELECT u.* FROM user u JOIN friendships f ON " +
-                "(u.user_id = f.friend_id OR u.user_id = f.user_id) AND u.user_id != ? " +
-                "WHERE (f.user_id = ? OR f.friend_id = ?) AND f.status = 'accepted'";
-        return DbHelper.queryList(sql, User.class, userId, userId, userId);
+        String sql = "SELECT u.user_id AS userId, u.username, u.password_hash AS passwordHash, u.created_at AS createdAt, u.is_online AS isOnline " +
+                "FROM user u JOIN friendships f ON " +
+                "((u.user_id = f.friend_id AND f.user_id = ?) OR " +
+                "(u.user_id = f.user_id AND f.friend_id = ?)) " +
+                "WHERE f.status = 'accepted'";
+        return DbHelper.queryList(sql, User.class, userId, userId);
     }
 
     public boolean addFriend(int userId, int friendId) throws SQLException {
