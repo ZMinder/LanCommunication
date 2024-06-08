@@ -33,6 +33,8 @@ public class ChatPanel extends JPanel {
     private DefaultListModel<String> friendListModel = new DefaultListModel<>();
     private JList<String> groupList = new JList<>();
     private DefaultListModel<String> groupListModel = new DefaultListModel<>();
+    private CustomListRenderer friendListRenderer = new CustomListRenderer();
+    private CustomListRenderer groupListRenderer = new CustomListRenderer();
 
     public ChatPanel(MainFrame mainFrame, Socket socket, String username) {
         this.mainFrame = mainFrame;
@@ -75,6 +77,8 @@ public class ChatPanel extends JPanel {
         tabbedPane.addTab("群组列表", new JScrollPane(groupList));
         friendList.setModel(friendListModel);
         groupList.setModel(groupListModel);
+        friendList.setCellRenderer(friendListRenderer);
+        groupList.setCellRenderer(groupListRenderer);
 
         // 创建一个包含JTabbedPane的面板，使其高度自适应
         JPanel tabPanel = new JPanel(new BorderLayout());
@@ -148,9 +152,48 @@ public class ChatPanel extends JPanel {
             handleGroupsList(msg.substring(7));
         } else if (msg.startsWith("groupHistory:") || msg.startsWith("friendHistory:")) {
             handleHistoryMessages(msg);
+        } else if (msg.startsWith("private:") || msg.startsWith("group:")) {
+            handleNewMessage(msg);
         } else {
             SwingUtilities.invokeLater(() -> chatArea.append(msg + "\n"));
         }
+    }
+
+    private void handleNewMessage(String msg) {
+        // private:fromUser:message
+        // group:groupId:fromUser:message
+        String[] parts = msg.split(":", 4);
+        String type = parts[0];
+        String senderOrGroupId = parts[1];
+        String fromUser = parts[2];
+        String content = parts[3];
+
+        SwingUtilities.invokeLater(() -> {
+            if (type.equals("private")) {
+                if (isActiveChat("private", senderOrGroupId)) {
+                    chatArea.append(fromUser + ": " + content + "\n");
+                } else {
+                    ((CustomListRenderer)friendList.getCellRenderer()).setNewMessage(senderOrGroupId);
+                    friendList.repaint();
+                }
+            } else if (type.equals("group")) {
+                if (isActiveChat("group", senderOrGroupId)) {
+                    chatArea.append(fromUser + ": " + content + "\n");
+                } else {
+                    ((CustomListRenderer)groupList.getCellRenderer()).setNewMessage(senderOrGroupId);
+                    groupList.repaint();
+                }
+            }
+        });
+    }
+
+    private boolean isActiveChat(String type, String id) {
+        if (type.equals("private") && !friendList.isSelectionEmpty() && friendList.getSelectedValue().equals(id)) {
+            return true;
+        } else if (type.equals("group") && !groupList.isSelectionEmpty() && groupList.getSelectedValue().equals(id)) {
+            return true;
+        }
+        return false;
     }
 
     private void handleFriendsList(String json) {//将从服务器端加载的好友列表显示到本地
