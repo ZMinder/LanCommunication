@@ -2,10 +2,10 @@ package com.zminder.server.server;
 
 import com.google.gson.Gson;
 import com.zminder.server.pojo.ChatGroup;
+import com.zminder.server.pojo.ChatMessage;
+import com.zminder.server.pojo.Message;
 import com.zminder.server.pojo.User;
-import com.zminder.server.service.FriendshipService;
-import com.zminder.server.service.GroupMemberService;
-import com.zminder.server.service.UserService;
+import com.zminder.server.service.*;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -14,6 +14,7 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class ClientHandler implements Runnable {
     private Socket socket;
@@ -25,6 +26,8 @@ public class ClientHandler implements Runnable {
     private UserService userService = new UserService(); // 用户服务用于查询用户信息
     private FriendshipService friendshipService = new FriendshipService();
     private GroupMemberService groupMemberService = new GroupMemberService();
+    private MessageService messageService = new MessageService();
+    private ChatGroupService chatGroupService = new ChatGroupService();
     private Gson gson = new Gson();
 
     public ClientHandler(Socket socket, ChatServer server) {
@@ -70,10 +73,44 @@ public class ClientHandler implements Runnable {
             sendFriendsList();
         } else if (messageLine.startsWith("load:groups")) {
             sendGroupsList();
+        } else if (messageLine.startsWith("load:groupHistory:")) {
+            sendGroupHistory(messageLine.substring(18)); // 提取 groupName
+        } else if (messageLine.startsWith("load:friendHistory:")) {
+            sendFriendHistory(messageLine.substring(19)); // 提取 friendUsername
         } else {
             handleMessage(messageLine);
         }
     }
+
+    private void sendGroupHistory(String groupName) {
+        ChatGroup group = chatGroupService.getGroupByName(groupName).get(0); // 假设返回的是列表，取第一个
+        List<Message> messages = messageService.getGroupMessages(group.getGroupId());
+        List<ChatMessage> chatMessages = messages.stream().map(msg -> {
+            User sender = userService.getUserById(msg.getSenderId());
+            ChatMessage chatMsg = new ChatMessage();
+            chatMsg.setUsername(sender.getUsername());
+            chatMsg.setContent(msg.getMessage());
+            return chatMsg;
+        }).collect(Collectors.toList());
+        String json = gson.toJson(chatMessages);
+        System.out.println(json);
+        sendMessage("groupHistory:" + json);
+    }
+
+    private void sendFriendHistory(String friendUsername) {
+        User friend = userService.getUserByUsername(friendUsername);
+        List<Message> messages = messageService.getMessagesBetweenUsers(user.getUserId(), friend.getUserId());
+        List<ChatMessage> chatMessages = messages.stream().map(msg -> {
+            User sender = userService.getUserById(msg.getSenderId());
+            ChatMessage chatMsg = new ChatMessage();
+            chatMsg.setUsername(sender.getUsername());
+            chatMsg.setContent(msg.getMessage());
+            return chatMsg;
+        }).collect(Collectors.toList());
+        String json = gson.toJson(chatMessages);
+        sendMessage("friendHistory:" + json);
+    }
+
 
     private void sendFriendsList() {
         if (user != null) {

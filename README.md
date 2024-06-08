@@ -9,6 +9,10 @@
 
 4.load:groups  加载群组列表
 
+5.load:groupHistory:groupName 加载群组历史记录
+
+6.load:friendHistory:friendName 加载好友历史记录
+
 服务器发送响应
 
 1.注册/登录：success/fail
@@ -16,6 +20,10 @@
 2.friends:json数据 好友列表
 
 3.groups:json数据 群组列表
+
+4.friendHistory:json数据
+
+5.groupHistory:json数据
 
 
 

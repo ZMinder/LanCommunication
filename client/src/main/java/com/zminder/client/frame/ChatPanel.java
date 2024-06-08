@@ -209,6 +209,7 @@ public class ChatPanel extends JPanel {
     private void handleHistoryMessages(String msg) {
         try {
             // 提取JSON部分
+            System.out.println(msg);
             String json = msg.substring(msg.indexOf('['));
             Type type = new TypeToken<List<ChatMessage>>() {
             }.getType();
