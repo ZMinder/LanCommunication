@@ -45,6 +45,17 @@ public class UserDao {
         }
     }
 
+    // 根据用户ID获取用户信息
+    public User getUserById(int userId) {
+        String sql = "SELECT * FROM user WHERE user_id = ?";
+        try {
+            return DbHelper.query(sql, User.class, userId);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
     // 查询用户是否存在
     public boolean isUsernameTaken(String username) {
         String sql = "SELECT COUNT(*) FROM user WHERE username = ?";

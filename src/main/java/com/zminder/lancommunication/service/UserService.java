@@ -35,6 +35,11 @@ public class UserService {
         return userDao.getUserByUsername(username);
     }
 
+    // 根据用户ID获取用户信息
+    public User getUserById(int userId) {
+        return userDao.getUserById(userId);
+    }
+    
     // 更新用户状态
     public boolean updateUserOnlineStatus(int userId, boolean isOnline) {
         return userDao.updateOnlineStatus(userId, isOnline);
