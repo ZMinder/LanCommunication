@@ -3,6 +3,8 @@ package com.zminder.server.service;
 import com.zminder.server.dao.UserDao;
 import com.zminder.server.pojo.User;
 
+import java.util.List;
+
 public class UserService {
 
     private UserDao userDao = new UserDao();
@@ -39,9 +41,15 @@ public class UserService {
     public User getUserById(int userId) {
         return userDao.getUserById(userId);
     }
-    
+
     // 更新用户状态
     public boolean updateUserOnlineStatus(int userId, boolean isOnline) {
         return userDao.updateOnlineStatus(userId, isOnline);
+    }
+
+    public List<User> searchUsers(String searchTerm) {
+        // 这里应该包含数据库查询逻辑
+        // 假设我们有一个数据库的访问方法如下
+        return userDao.findUsersByUsernameLike("%" + searchTerm + "%");
     }
 }

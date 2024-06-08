@@ -17,6 +17,8 @@
 
 8.group:groupName:message
 
+9.userSearch:username
+
 服务器发送响应
 
 1.注册/登录：success/fail
@@ -32,5 +34,7 @@
 6.private:fromUser:message
 
 7.group:groupId:fromUser:message
+
+8.userSearch:username1,username2,...
 
 

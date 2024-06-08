@@ -81,8 +81,39 @@ public class ClientHandler implements Runnable {
             handlePrivateMessage(messageLine.substring(8)); // 提取后续消息部分
         } else if (messageLine.startsWith("group:")) {
             handleGroupMessage(messageLine.substring(6)); // 提取后续消息部分
+        } else if (messageLine.startsWith("userSearch:")) {
+            handleUserSearch(messageLine.substring(11)); // 提取搜索词
+        } else if (messageLine.startsWith("friendRequest:")) {
+            handleFriendRequest(messageLine.substring(14));
         } else {
             System.out.println("Received unknown command: " + messageLine);
+        }
+    }
+
+
+    private void handleFriendRequest(String requestedUsername) {
+        User requestedUser = userService.getUserByUsername(requestedUsername);
+        if (requestedUser == null) {
+            System.out.println("friendRequest:fail:User not found");
+        } else {
+            try {
+                friendshipService.sendFriendRequest(user.getUserId(), requestedUser.getUserId());
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private void handleUserSearch(String searchTerm) {
+        List<User> users = userService.searchUsers(searchTerm); // 调用UserService中的搜索方法
+        if (users.isEmpty()) {
+            sendMessage("search:no users found"); // 没有找到用户时的响应
+        } else {
+            String response = users.stream()
+                    .map(User::getUsername)
+                    .collect(Collectors.joining(",")); // 将用户名列表转换成字符串
+            System.out.println(response);
+            sendMessage("userSearch:" + response); // 发送搜索结果
         }
     }
 

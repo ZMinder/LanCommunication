@@ -36,14 +36,19 @@ public class ChatPanel extends JPanel {
     private CustomListRenderer friendListRenderer = new CustomListRenderer();
     private CustomListRenderer groupListRenderer = new CustomListRenderer();
 
+    private volatile boolean isActive = false;  // 控制读取线程
+    private Thread readingThread;  // 保存数据读取线程的引用
+
     public ChatPanel(MainFrame mainFrame, Socket socket, String username) {
         this.mainFrame = mainFrame;
         setConnection(socket, username);//设置username和socket
         setupUI();//设置UI界面
         loadInitialData();//加载好友列表和群组列表
+        startReading();  // 默认开始读取
     }
 
     public void setConnection(Socket socket, String username) {
+        chatArea.setText("");//清空聊天记录区域
         this.username = username;
         this.socket = socket;
         try {
@@ -91,7 +96,7 @@ public class ChatPanel extends JPanel {
         add(mainSplitPane, BorderLayout.CENTER);
 
         JButton searchButton = new JButton("查找用户");
-        searchButton.addActionListener(e -> mainFrame.showSearchPanel(username,socket));
+        searchButton.addActionListener(e -> mainFrame.showSearchPanel(username, socket));
         add(searchButton, BorderLayout.NORTH);
 
         //设置监听器
@@ -136,15 +141,32 @@ public class ChatPanel extends JPanel {
         out.println("load:groups");
     }
 
-    private void readMessages() {//处理从服务器端接收的信息
+    // 开始读取数据
+    public synchronized void startReading() {
+        if (readingThread == null || !readingThread.isAlive()) {  // 确保不重复启动线程
+            isActive = true;
+            readingThread = new Thread(this::readMessages);
+            readingThread.start();
+        }
+    }
+
+    // 停止读取数据
+    public synchronized void stopReading() {
+        isActive = false;
+    }
+
+    private void readMessages() {
         try {
             String line;
-            while ((line = in.readLine()) != null) {
+            while (isActive && in != null && (line = in.readLine()) != null) {
+                System.out.println("chatPanel");
                 final String msg = line;
                 handleMessages(msg);
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            if (isActive) {
+                System.err.println("读取数据时出错: " + e.getMessage());
+            }
         }
     }
 

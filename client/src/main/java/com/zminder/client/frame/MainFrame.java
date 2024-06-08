@@ -48,12 +48,24 @@ public class MainFrame extends JFrame {
             chatPanel.setConnection(socket, username);
         }
         cardLayout.show(mainPanel, "聊天");
+        if (searchPanel != null) {
+            searchPanel.stopReading();  // 停止搜索面板的数据读取
+        }
+        chatPanel.startReading();  // 启动聊天面板的数据读取
     }
 
     public void showSearchPanel(String username, Socket socket) {
-        searchPanel = new SearchPanel(this, socket, username);
-        mainPanel.add(searchPanel, "查找用户");
+        if (searchPanel == null) {
+            searchPanel = new SearchPanel(this, socket, username);
+            mainPanel.add(searchPanel, "查找用户");
+        } else {
+            searchPanel.setConnection(socket, username);
+        }
         cardLayout.show(mainPanel, "查找用户");
+        if (chatPanel != null) {
+            chatPanel.stopReading();  // 停止聊天面板的数据读取
+        }
+        searchPanel.startReading();  // 启动搜索面板的数据读取
     }
 
     public static void main(String[] args) {

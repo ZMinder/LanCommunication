@@ -5,6 +5,8 @@ import com.zminder.server.utils.DbHelper;
 import org.apache.commons.dbutils.handlers.ScalarHandler;
 
 import java.sql.SQLException;
+import java.util.Collections;
+import java.util.List;
 
 public class UserDao {
     // 注册用户
@@ -80,6 +82,18 @@ public class UserDao {
         } catch (SQLException e) {
             e.printStackTrace();
             return false;
+        }
+    }
+
+    // 根据用户名模糊查询用户列表
+    public List<User> findUsersByUsernameLike(String usernamePattern) {
+        String sql = "SELECT user_id AS userId, username, password_hash AS passwordHash, created_at AS createdAt, is_online AS isOnline "
+                + "FROM user WHERE username LIKE ?";
+        try {
+            return DbHelper.queryList(sql, User.class, usernamePattern);
+        } catch (SQLException e) {
+            System.err.println("Error querying users by username: " + e.getMessage());
+            return Collections.emptyList(); // 在发生错误时返回空列表
         }
     }
 
