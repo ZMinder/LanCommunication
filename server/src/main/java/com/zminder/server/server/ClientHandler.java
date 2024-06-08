@@ -77,8 +77,83 @@ public class ClientHandler implements Runnable {
             sendGroupHistory(messageLine.substring(18)); // 提取 groupName
         } else if (messageLine.startsWith("load:friendHistory:")) {
             sendFriendHistory(messageLine.substring(19)); // 提取 friendUsername
+        } else if (messageLine.startsWith("private:")) {
+            handlePrivateMessage(messageLine.substring(8)); // 提取后续消息部分
+        } else if (messageLine.startsWith("group:")) {
+            handleGroupMessage(messageLine.substring(6)); // 提取后续消息部分
         } else {
-            handleMessage(messageLine);
+            System.out.println("Received unknown command: " + messageLine);
+        }
+    }
+
+    private void handlePrivateMessage(String details) {
+        String[] parts = details.split(":", 2);
+        if (parts.length < 2) return;  // 格式错误，返回
+
+        String toUser = parts[0];
+        String message = parts[1];
+        sendPrivateMessage(user.getUsername(), toUser, message);
+    }
+
+    private void handleGroupMessage(String details) {
+        String[] parts = details.split(":", 2);
+        if (parts.length < 2) return;  // 格式错误，返回
+
+        String groupName = parts[0];
+        String message = parts[1];
+
+        // 查询群组ID
+        ChatGroup group = chatGroupService.getGroupByName(groupName).get(0);
+        if (group != null) {
+            sendGroupMessage(user.getUsername(), String.valueOf(group.getGroupId()), message);
+        } else {
+            System.out.println("群组 '" + groupName + "' 未找到");
+        }
+    }
+
+
+    private void sendPrivateMessage(String fromUser, String toUser, String message) {
+        User sender = userService.getUserByUsername(fromUser);
+        User receiver = userService.getUserByUsername(toUser);
+
+        // 查找目标用户是否在线
+        ClientHandler receiverHandler = server.getClientHandler(toUser);
+        if (receiverHandler != null) {
+            // 用户在线，直接发送消息
+            receiverHandler.sendMessage("From " + fromUser + ": " + message);
+        }
+
+        // 记录发送的消息到数据库，无论用户是否在线
+        if (sender != null && receiver != null) {
+            Message msg = new Message();
+            msg.setSenderId(sender.getUserId());
+            msg.setReceiverId(receiver.getUserId());
+            msg.setGroupId(null);  // 因为这是私人消息
+            msg.setMessage(message);
+            messageService.sendMessage(msg);
+        }
+    }
+
+    private void sendGroupMessage(String fromUser, String groupId, String message) {
+        User sender = userService.getUserByUsername(fromUser);
+        int groupIdInt = Integer.parseInt(groupId);
+        List<User> members = groupMemberService.getGroupMembers(groupIdInt);
+
+        for (User member : members) {
+            ClientHandler memberHandler = server.getClientHandler(member.getUsername());
+            if (memberHandler != null && !member.getUsername().equals(fromUser)) {
+                memberHandler.sendMessage("Group " + groupId + " From " + fromUser + ": " + message);
+            }
+        }
+
+        // 记录群组消息到数据库
+        if (sender != null) {
+            Message msg = new Message();
+            msg.setSenderId(sender.getUserId());
+            msg.setReceiverId(null);  // 因为这是群组消息
+            msg.setGroupId(groupIdInt);
+            msg.setMessage(message);
+            messageService.sendMessage(msg);
         }
     }
 
@@ -164,25 +239,6 @@ public class ClientHandler implements Runnable {
             sendMessage("success");
         } else {
             sendMessage("fail");
-        }
-    }
-
-    private void handleMessage(String messageLine) {
-        String[] parts = messageLine.split(":", 3);
-        if (parts.length < 3) {
-            return; // 不符合预期的消息格式，忽略处理
-        }
-
-        //private recipient content
-        //group groupId content
-        String messageType = parts[0];
-        String recipient = parts[1];
-        String messageContent = parts[2];
-
-        if ("private".equals(messageType)) {
-            server.handleMessage(user.getUsername(), recipient, messageContent, false);
-        } else if ("group".equals(messageType)) {
-            server.handleMessage(user.getUsername(), recipient, messageContent, true);
         }
     }
 

@@ -175,19 +175,23 @@ public class ChatPanel extends JPanel {
 
     // 这个方法被调用当用户点击发送消息按钮
     private void handleSendMessage(ActionEvent e) {
-        String message = inputField.getText();
+        String message = inputField.getText().trim();
         if (!message.isEmpty()) {
+            // 判断是发送给好友还是群组
             if (!friendList.isSelectionEmpty()) {
+                // 发送私聊消息
                 String friendName = friendList.getSelectedValue();
                 out.println("private:" + friendName + ":" + message);
             } else if (!groupList.isSelectionEmpty()) {
+                // 发送群聊消息
                 String groupName = groupList.getSelectedValue();
                 out.println("group:" + groupName + ":" + message);
             }
-            chatArea.append("我: " + message + "\n");
-            inputField.setText("");
+            chatArea.append(username + ":" + message + "\n"); // 在本地聊天区域显示发送的消息
+            inputField.setText(""); // 清空输入框
         }
     }
+
 
     // 加载群组聊天历史
     private void loadGroupChatHistory() {
